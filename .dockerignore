@@ -1,0 +1,12 @@
+target/
+.git/
+.idea/
+*.iml
+
+.env
+.env.*
+application-local.properties
+
+*.pem
+*.key
+*.p12
