@@ -11,8 +11,15 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/companies")
+@Tag(
+        name = "Companies",
+        description = "Create, view, update, and delete companies"
+)
 public class CompanyController {
 
     private final CompanyService companyService;
@@ -21,6 +28,7 @@ public class CompanyController {
         this.companyService = companyService;
     }
 
+    @Operation(summary = "Create a company")
     @PostMapping
     public ResponseEntity<CompanyResponse> createCompany(
             @Valid @RequestBody CompanyRequest request
@@ -36,6 +44,7 @@ public class CompanyController {
         return ResponseEntity.created(location).body(response);
     }
 
+    @Operation(summary = "Get all companies")
     @GetMapping
     public ResponseEntity<List<CompanyResponse>> getAllCompanies() {
 
@@ -44,6 +53,7 @@ public class CompanyController {
         return ResponseEntity.ok(companies);
     }
 
+    @Operation(summary = "Get a company by ID")
     @GetMapping("/{id}")
     public ResponseEntity<CompanyResponse> getCompanyById(
             @PathVariable Long id
@@ -53,6 +63,7 @@ public class CompanyController {
         return ResponseEntity.ok(company);
     }
 
+    @Operation(summary = "Update a company")
     @PutMapping("/{id}")
     public ResponseEntity<CompanyResponse> updateCompany(
             @PathVariable Long id,
@@ -64,6 +75,7 @@ public class CompanyController {
         return ResponseEntity.ok(updatedCompany);
     }
 
+    @Operation(summary = "Delete a company")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCompany(
             @PathVariable Long id

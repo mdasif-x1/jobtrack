@@ -54,9 +54,12 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(InvalidApplicationException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidApplicationException(
-            InvalidApplicationException exception,
+    @ExceptionHandler({
+            InvalidApplicationException.class,
+            InvalidRequestException.class
+    })
+    public ResponseEntity<ErrorResponse> handleBadRequestException(
+            RuntimeException exception,
             HttpServletRequest request
     ) {
         return buildErrorResponse(

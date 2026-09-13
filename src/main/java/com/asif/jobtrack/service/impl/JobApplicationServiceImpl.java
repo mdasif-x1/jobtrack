@@ -9,6 +9,7 @@ import com.asif.jobtrack.enums.ApplicationStatus;
 import com.asif.jobtrack.enums.JobType;
 import com.asif.jobtrack.exception.DuplicateResourceException;
 import com.asif.jobtrack.exception.InvalidApplicationException;
+import com.asif.jobtrack.exception.InvalidRequestException;
 import com.asif.jobtrack.exception.ResourceNotFoundException;
 import com.asif.jobtrack.mapper.JobApplicationMapper;
 import com.asif.jobtrack.repository.CompanyRepository;
@@ -21,7 +22,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+
+import com.asif.jobtrack.repository.projection.StatusCountProjection;
+
+import java.util.EnumMap;
 
 @Service
 public class JobApplicationServiceImpl implements JobApplicationService {
@@ -79,7 +85,6 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     @Override
     @Transactional(readOnly = true)
     public JobApplicationResponse getApplicationById(Long id) {
-
         JobApplication application = getApplicationOrThrow(id);
 
         return jobApplicationMapper.toResponse(application);
@@ -163,8 +168,91 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         jobApplicationRepository.delete(application);
     }
 
-    private JobApplication getApplicationOrThrow(Long id) {
+    @Override
+    @Transactional(readOnly = true)
+    public PagedResponse<JobApplicationResponse> searchApplications(
+            String keyword,
+            Pageable pageable
+    ) {
+        String normalizedKeyword = keyword == null
+                ? ""
+                : keyword.trim().toLowerCase(Locale.ROOT);
 
+        if (normalizedKeyword.isBlank()) {
+            throw new InvalidRequestException(
+                    "Search keyword must not be blank"
+            );
+        }
+
+        Page<JobApplication> applicationPage =
+                jobApplicationRepository.searchByKeyword(
+                        normalizedKeyword,
+                        pageable
+                );
+
+        return toPagedResponse(applicationPage);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PagedResponse<JobApplicationResponse> filterByStatus(
+            ApplicationStatus status,
+            Pageable pageable
+    ) {
+        Page<JobApplication> applicationPage =
+                jobApplicationRepository.findByStatus(
+                        status,
+                        pageable
+                );
+
+        return toPagedResponse(applicationPage);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PagedResponse<JobApplicationResponse> filterByJobType(
+            JobType jobType,
+            Pageable pageable
+    ) {
+        Page<JobApplication> applicationPage =
+                jobApplicationRepository.findByJobType(
+                        jobType,
+                        pageable
+                );
+
+        return toPagedResponse(applicationPage);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PagedResponse<JobApplicationResponse> filterByDateRange(
+            LocalDate startDate,
+            LocalDate endDate,
+            Pageable pageable
+    ) {
+        if (startDate == null || endDate == null) {
+            throw new InvalidRequestException(
+                    "Both startDate and endDate are required"
+            );
+        }
+
+        if (startDate.isAfter(endDate)) {
+            throw new InvalidRequestException(
+                    "Start date must be before or equal to end date"
+            );
+        }
+
+        Page<JobApplication> applicationPage =
+                jobApplicationRepository.findByApplicationDateBetween(
+                        startDate,
+                        endDate,
+                        pageable
+                );
+
+        return toPagedResponse(applicationPage);
+    }
+
+    private JobApplication getApplicationOrThrow(Long id) {
         return jobApplicationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Job application not found with id: " + id
@@ -217,57 +305,39 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     }
 
     @Override
-    public PagedResponse<JobApplicationResponse> searchApplications(
-            String keyword,
-            Pageable pageable
-    ) {
-        throw new UnsupportedOperationException(
-                "Search will be implemented on Day 2"
-        );
-    }
-
-    @Override
-    public PagedResponse<JobApplicationResponse> filterByStatus(
-            ApplicationStatus status,
-            Pageable pageable
-    ) {
-        throw new UnsupportedOperationException(
-                "Status filter will be implemented on Day 2"
-        );
-    }
-
-    @Override
-    public PagedResponse<JobApplicationResponse> filterByJobType(
-            JobType jobType,
-            Pageable pageable
-    ) {
-        throw new UnsupportedOperationException(
-                "Job type filter will be implemented on Day 2"
-        );
-    }
-
-    @Override
-    public PagedResponse<JobApplicationResponse> filterByDateRange(
-            LocalDate startDate,
-            LocalDate endDate,
-            Pageable pageable
-    ) {
-        throw new UnsupportedOperationException(
-                "Date range filter will be implemented on Day 2"
-        );
-    }
-
-    @Override
+    @Transactional(readOnly = true)
     public List<JobApplicationResponse> getUpcomingApplications() {
-        throw new UnsupportedOperationException(
-                "Upcoming applications will be implemented on Day 2"
-        );
+        LocalDate today = LocalDate.now();
+
+        return jobApplicationRepository
+                .findByNextActionDateIsNotNullAndNextActionDateGreaterThanEqualOrderByNextActionDateAsc(
+                        today
+                )
+                .stream()
+                .map(jobApplicationMapper::toResponse)
+                .toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Map<ApplicationStatus, Long> getStatusStatistics() {
-        throw new UnsupportedOperationException(
-                "Status statistics will be implemented on Day 2"
-        );
+        Map<ApplicationStatus, Long> statistics =
+                new EnumMap<>(ApplicationStatus.class);
+
+        for (ApplicationStatus status : ApplicationStatus.values()) {
+            statistics.put(status, 0L);
+        }
+
+        List<StatusCountProjection> statusCounts =
+                jobApplicationRepository.countApplicationsByStatus();
+
+        for (StatusCountProjection statusCount : statusCounts) {
+            statistics.put(
+                    statusCount.getStatus(),
+                    statusCount.getCount()
+            );
+        }
+
+        return statistics;
     }
 }
