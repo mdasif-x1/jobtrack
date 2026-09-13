@@ -1,0 +1,105 @@
+{
+  "info": {
+    "_postman_id": "a3c3ad24-4d4c-4ded-bc7e-23af4c34d85a",
+    "name": "JobTrack",
+    "description": "Tested requests for the JobTrack REST API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "Companies",
+      "item": [
+        {
+          "name": "Create Company",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Atlassian\",\n  \"website\": \"https://www.atlassian.com\",\n  \"location\": \"Bengaluru\"\n}"},
+            "url": "{{baseUrl}}/api/companies"
+          }
+        },
+        {"name": "Get All Companies", "request": {"method": "GET", "url": "{{baseUrl}}/api/companies"}},
+        {"name": "Get Company by ID", "request": {"method": "GET", "url": "{{baseUrl}}/api/companies/4"}},
+        {
+          "name": "Update Company",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Atlassian Updated\",\n  \"website\": \"https://www.atlassian.com/careers\",\n  \"location\": \"Noida\"\n}"},
+            "url": "{{baseUrl}}/api/companies/4"
+          }
+        },
+        {"name": "Delete Company", "request": {"method": "DELETE", "url": "{{baseUrl}}/api/companies/7"}}
+      ]
+    },
+    {
+      "name": "Applications",
+      "item": [
+        {
+          "name": "Create Application",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"jobRole\": \"Backend Software Engineer Intern\",\n  \"jobType\": \"INTERNSHIP\",\n  \"status\": \"APPLIED\",\n  \"applicationDate\": \"2026-09-12\",\n  \"jobLink\": \"https://example.com/jobs/backend-intern-postman\",\n  \"location\": \"Bengaluru\",\n  \"notes\": \"Postman collection sample\",\n  \"nextActionDate\": \"2026-09-20\",\n  \"companyId\": 4\n}"},
+            "url": "{{baseUrl}}/api/applications"
+          }
+        },
+        {"name": "Get All Applications", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications"}},
+        {"name": "Get Application by ID", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications/4"}},
+        {
+          "name": "Update Application",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"jobRole\": \"Backend Software Engineer Intern - Updated\",\n  \"jobType\": \"INTERNSHIP\",\n  \"status\": \"APPLIED\",\n  \"applicationDate\": \"2026-09-09\",\n  \"jobLink\": \"https://jobs.atlassian.com/verification-backend-intern-01\",\n  \"location\": \"Noida\",\n  \"notes\": \"Updated through Postman\",\n  \"nextActionDate\": \"2026-09-21\",\n  \"companyId\": 3\n}"},
+            "url": "{{baseUrl}}/api/applications/4"
+          }
+        },
+        {
+          "name": "Update Application Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"status\": \"INTERVIEW\"\n}"},
+            "url": "{{baseUrl}}/api/applications/4/status"
+          }
+        },
+        {"name": "Delete Application", "request": {"method": "DELETE", "url": "{{baseUrl}}/api/applications/6"}}
+      ]
+    },
+    {
+      "name": "Search and Filters",
+      "item": [
+        {"name": "Search Applications - Role", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications/search?keyword=java"}},
+        {"name": "Search Applications - Company", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications/search?keyword=ATLAS"}},
+        {"name": "Search Applications - No Match", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications/search?keyword=design"}},
+        {"name": "Search Applications - Paginated", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications/search?keyword=engineer&page=0&size=1&sort=jobRole,asc"}},
+        {"name": "Filter Applications - Status", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications/filter/status?status=SAVED"}},
+        {"name": "Filter Applications - Job Type", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications/filter/job-type?jobType=INTERNSHIP"}},
+        {"name": "Filter Applications - Date Range", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications/filter/date?startDate=2026-09-09&endDate=2026-09-12"}},
+        {"name": "Get Upcoming Actions", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications/upcoming"}},
+        {"name": "Get Status Statistics", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications/statistics/status"}}
+      ]
+    },
+    {
+      "name": "Failure Cases",
+      "item": [
+        {"name": "Applications - Negative Page", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications?page=-1"}},
+        {"name": "Applications - Size Zero", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications?size=0"}},
+        {"name": "Applications - Unsupported Sort Field", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications?sort=company,asc"}},
+        {"name": "Search Applications - Blank Keyword", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications/search?keyword=%20%20%20"}},
+        {"name": "Filter Applications - Invalid Status", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications/filter/status?status=WAITING"}},
+        {"name": "Filter Applications - Invalid Date Range", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications/filter/date?startDate=2026-09-12&endDate=2026-09-09"}},
+        {"name": "Filter Applications - Missing End Date", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications/filter/date?startDate=2026-09-09"}},
+        {"name": "Get Application - Unknown ID", "request": {"method": "GET", "url": "{{baseUrl}}/api/applications/99999"}},
+        {"name": "Delete Company - In Use", "request": {"method": "DELETE", "url": "{{baseUrl}}/api/companies/3"}}
+      ]
+    }
+  ]
+}
